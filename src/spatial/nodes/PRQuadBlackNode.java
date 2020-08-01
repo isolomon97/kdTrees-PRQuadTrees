@@ -4,8 +4,10 @@ import spatial.exceptions.UnimplementedMethodException;
 import spatial.kdpoint.KDPoint;
 import spatial.knnutils.BoundedPriorityQueue;
 import spatial.knnutils.NNData;
+import spatial.trees.CentroidAccuracyException;
 import spatial.trees.PRQuadTree;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 
@@ -18,7 +20,7 @@ import java.util.Collection;
  *
  * <p><b>YOU ***** MUST ***** IMPLEMENT THIS CLASS!</b></p>
  *
- * @author --- YOUR NAME HERE! ---
+ * @author --- Isaac Solomon ---
  */
 public class PRQuadBlackNode extends PRQuadNode {
 
@@ -32,6 +34,11 @@ public class PRQuadBlackNode extends PRQuadNode {
     /* ******************************************************************** */
     /* *************  PLACE ANY  PRIVATE FIELDS AND METHODS HERE: ************ */
     /* ********************************************************************** */
+    public ArrayList<KDPoint> data;
+    int count;
+    int sideLength;
+    int nodeCap;
+    KDPoint centroid;
 
     /* *********************************************************************** */
     /* ***************  IMPLEMENT THE FOLLOWING PUBLIC METHODS:  ************ */
@@ -49,7 +56,12 @@ public class PRQuadBlackNode extends PRQuadNode {
      */
     public PRQuadBlackNode(KDPoint centroid, int k, int bucketingParam){
         super(centroid, k, bucketingParam); // Call to the super class' protected constructor to properly initialize the object is necessary, even for a constructor that just throws!
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        sideLength = (int) Math.pow(2, k);
+        count = 0;
+        nodeCap = bucketingParam;
+        this.centroid = centroid;
+        data = new ArrayList<>();
+
     }
 
     /**
@@ -66,7 +78,8 @@ public class PRQuadBlackNode extends PRQuadNode {
      */
     public PRQuadBlackNode(KDPoint centroid, int k, int bucketingParam, KDPoint p){
         this(centroid, k, bucketingParam); // Call to the current class' other constructor, which takes care of the base class' initialization itself.
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        data.add(p);
+        count++;
     }
 
 
@@ -95,8 +108,42 @@ public class PRQuadBlackNode extends PRQuadNode {
      */
     @Override
     public PRQuadNode insert(KDPoint p, int k) {
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        int newK = k-1;
+
+
+        if (data.contains(p)){//duplicate, just return
+            return this;
+
+        }
+
+
+        count++;//increment first to check if we go over
+
+        if (count <= nodeCap){
+            data.add(p);
+        }
+
+        if (count > nodeCap){//need to split
+            if (k < 1){
+                throw new CentroidAccuracyException("too small k in black");
+            }
+            PRQuadGrayNode gray = new PRQuadGrayNode(centroid, k, nodeCap);
+            for (int i = 0; i<data.size(); i++){
+                gray.insert(data.get(i), k);
+            }
+           return gray.insert(p, k);
+
+
+
+        }
+
+
+        return this;
     }
+
+
+
+
 
 
     /**
@@ -111,22 +158,46 @@ public class PRQuadBlackNode extends PRQuadNode {
      */
     @Override
     public PRQuadNode delete(KDPoint p) {
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        if (data.contains(p)){
+            data.remove(p);
+            count--;
+            if (count >= 1){
+                return this;
+            }
+            else{
+                return null;
+            }
+
+        }
+        else{
+            return this;
+        }
     }
 
     @Override
     public boolean search(KDPoint p){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        boolean found = false;
+
+        if (data.contains(p)){
+            found = true;
+        }
+
+        return found;
     }
 
     @Override
     public int height(){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        if (count == 0){
+            return -1;
+        }
+        else {
+            return 0;
+        }
     }
 
     @Override
     public int count()  {
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        return count;
     }
 
     /** Returns all the {@link KDPoint}s contained by the {@link PRQuadBlackNode}. <b>INVARIANT</b>: the returned
@@ -137,22 +208,65 @@ public class PRQuadBlackNode extends PRQuadNode {
      * a null reference.
      */
     public Collection<KDPoint> getPoints()  {
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        return data;
     }
 
     @Override
     public void range(KDPoint anchor, Collection<KDPoint> results,
                       double range) {
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+
+        for (int i = 0; i< data.size(); i++){
+            if (data.get(i).euclideanDistance(anchor) <= range){//within range, inclusive
+                results.add(data.get(i));
+
+            }
+        }
+
+
+
+
     }
+
+
+
+
 
     @Override
     public NNData<KDPoint> nearestNeighbor(KDPoint anchor, NNData<KDPoint> n) {
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+
+
+        for (int i = 0; i <data.size(); i++){
+            if ((data.get(i).coords[0] != anchor.coords[0] && data.get(i).coords[1] != anchor.coords[1]) ||
+                    (data.get(i).coords[0] != anchor.coords[0] && data.get(i).coords[1] == anchor.coords[1]) ||
+                    (data.get(i).coords[0] == anchor.coords[0] && data.get(i).coords[1] != anchor.coords[1]))  {
+                if (data.get(i).euclideanDistance(anchor) < n.getBestDist()) {
+                    n.update(data.get(i), data.get(i).euclideanDistance(anchor));
+                }
+            }
+
+        }
+
+        return n;
     }
 
     @Override
     public void kNearestNeighbors(int k, KDPoint anchor, BoundedPriorityQueue<KDPoint> queue){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+
+
+
+        for (int i = 0; i <data.size(); i++){
+            double distance = data.get(i).euclideanDistance(anchor);
+            if ((data.get(i).coords[0] != anchor.coords[0] && data.get(i).coords[1] != anchor.coords[1]) ||
+                    (data.get(i).coords[0] != anchor.coords[0] && data.get(i).coords[1] == anchor.coords[1]) ||
+                    (data.get(i).coords[0] == anchor.coords[0] && data.get(i).coords[1] != anchor.coords[1])) {
+                queue.enqueue(data.get(i), distance);
+            }
+
+        }
+
+
+
+
+
     }
 }

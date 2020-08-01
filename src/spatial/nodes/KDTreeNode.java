@@ -5,6 +5,7 @@ import spatial.kdpoint.KDPoint;
 import spatial.knnutils.BoundedPriorityQueue;
 import spatial.knnutils.NNData;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
 
 /**
@@ -13,7 +14,7 @@ import java.util.Collection;
  *
  * <p><b>YOU ***** MUST ***** IMPLEMENT THIS CLASS!</b></p>
  *
- * @author  ---- YOUR NAME HERE! -----
+ * @author  ---- Isaac Solomon -----
  *
  * @see spatial.trees.KDTree
  */
@@ -32,6 +33,8 @@ public class KDTreeNode {
     /* ************************************************************************************* */
 
 
+
+
     /* *********************************************************************** */
     /* ***************  IMPLEMENT THE FOLLOWING PUBLIC METHODS:  ************ */
     /* *********************************************************************** */
@@ -43,7 +46,14 @@ public class KDTreeNode {
      *          <b>mutable!!!</b>.
      */
     public KDTreeNode(KDPoint p){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        this.p = new KDPoint(p);
+        this.p.coords = new int[p.coords.length];
+        for (int i = 0; i< p.coords.length; i++){
+            this.p.coords[i] = p.coords[i];
+        }
+
+        left = null;
+        right = null;
     }
 
     /**
@@ -56,9 +66,34 @@ public class KDTreeNode {
      * @param pIn The {@link KDPoint} to insert into the node.
      * @see #delete(KDPoint, int, int)
      */
-    public  void insert(KDPoint pIn, int currDim, int dims){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+    public void insert(KDPoint pIn, int currDim, int dims){
+        KDTreeNode newNode = new KDTreeNode(pIn);
+
+        if (pIn.coords[currDim%dims] < this.p.coords[currDim%dims]){//new nodes relevant dimensional value is less, go left
+            if (this.left == null){//has no left child, just insert
+                this.left = newNode;
+            }
+            else{//has left child
+                this.left.insert(pIn, currDim+1, dims);
+
+            }
+
+        }
+        else{//new nodes relevant dimensional value is greater or equal, go right
+            if (this.right == null){//has no right child
+                this.right = newNode;
+            }
+            else{
+                this.right.insert(pIn, currDim+1, dims);
+            }
+
+        }
+
+
     }
+
+
+
 
     /**
      * <p>Deletes the provided {@link KDPoint} from the tree rooted at this. To select which subtree to recurse to,
@@ -81,8 +116,57 @@ public class KDTreeNode {
      * @return A reference to this after the deletion takes place.
      */
     public KDTreeNode delete(KDPoint pIn, int currDim, int dims){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        KDTreeNode toReturn = new KDTreeNode(pIn);//placeholder
+
+
+
+        if (this.p.equals(pIn)){//found, time to delete
+            if (this.left == null && this.right == null){//no children, just delete the node
+                return null;
+
+            }
+            else if (this.right != null){//non-null right subtree
+
+
+
+            }
+
+        }
+        else if (pIn.coords[currDim%dims] < this.p.coords[currDim%dims]){//check left
+            this.left = this.left.delete(pIn, currDim, dims);
+
+        }
+        else{//check right
+            this.right = this.right.delete(pIn, currDim, dims);
+
+        }
+
+
+
+        return toReturn;//placeholder, should actually return current node
     }
+
+    public KDTreeNode findMin(KDTreeNode curr, int currDim, int numDims){
+        KDTreeNode toReturn = null;
+
+
+
+
+
+
+
+            return toReturn;
+        }
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Searches the subtree rooted at the current node for the provided {@link KDPoint}.
@@ -92,7 +176,37 @@ public class KDTreeNode {
      * @return true iff pIn was found in the subtree rooted at this, false otherwise.
      */
     public  boolean search(KDPoint pIn, int currDim, int dims){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        boolean found = false;
+
+        if (this == null){
+            return false;
+        }
+
+        if (this.p.equals(pIn)){//equal coords, found
+            return true;
+        }
+
+        if (pIn.coords[currDim%dims] < this.p.coords[currDim%dims]){//less, check left
+            if (this.left != null) {
+                found = this.left.search(pIn, currDim+1, dims);
+            }
+            else{
+                return false;
+            }
+
+        }
+        else{
+            if (this.right != null) {
+                found = this.right.search(pIn, currDim+1, dims);
+            }
+            else{
+                return false;
+            }
+        }
+
+
+
+        return found;
     }
 
     /**
@@ -115,7 +229,26 @@ public class KDTreeNode {
      */
     public void range(KDPoint anchor, Collection<KDPoint> results,
                       double range, int currDim , int dims){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+
+
+        if ( this != null && p.euclideanDistance(anchor) <= range){
+
+                if (p.coords != anchor.coords) {
+                    results.add(p);
+                }
+
+        }
+
+            if (right != null) {
+                    right.range(anchor, results, range, currDim+1, dims);
+            }
+
+            if (left != null){
+                    left.range(anchor, results, range, currDim+1, dims);
+            }
+
+
+
     }
 
 
@@ -146,7 +279,36 @@ public class KDTreeNode {
      */
     public  NNData<KDPoint> nearestNeighbor(KDPoint anchor, int currDim,
                                             NNData<KDPoint> n, int dims){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+
+        if (this.p.euclideanDistance(anchor) < n.getBestDist()){//closer than current best distance
+            boolean isAnchor = true;
+
+            for (int i = 0; i<p.coords.length; i++){
+                if (p.coords[i] != anchor.coords[i]){
+                    isAnchor = false;
+                    break;
+                }
+            }
+
+            if (isAnchor == false) {
+                n.update(this.p, this.p.euclideanDistance(anchor));
+            }
+
+
+
+        }
+
+        if (right != null){
+            right.nearestNeighbor(anchor, currDim++, n, dims);
+        }
+
+        if (left != null){
+            left.nearestNeighbor(anchor, currDim++, n, dims);
+        }
+
+
+
+        return n;
     }
 
     /**
@@ -177,7 +339,31 @@ public class KDTreeNode {
      * @see BoundedPriorityQueue
      */
     public  void kNearestNeighbors(int k, KDPoint anchor, BoundedPriorityQueue<KDPoint> queue, int currDim, int dims){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+
+        boolean isAnchor = true;
+
+        for (int i = 0; i<p.coords.length; i++){
+            if (p.coords[i] != anchor.coords[i]){
+                isAnchor = false;
+                break;
+            }
+        }
+
+        if (isAnchor == false) {
+            queue.enqueue(p, p.euclideanDistance(anchor));
+        }
+
+        if (right != null){
+            right.kNearestNeighbors(k, anchor, queue, currDim++, dims);
+        }
+
+        if (left != null){
+            left.kNearestNeighbors(k, anchor, queue, currDim++, dims);
+        }
+
+
+
+
     }
 
     /**
@@ -189,7 +375,53 @@ public class KDTreeNode {
      * @return the height of the subtree rooted at the current node.
      */
     public int height(){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        int height = 0;
+
+        if (this == null){
+            return -1;
+        }
+
+
+        if (this.left == null && this.right == null && this != null){//stub tree
+            return 0;
+
+        }
+        else{
+            height = heightHelp(this);
+
+        }
+        this.height = height;
+
+        return height;
+    }
+
+    public int heightHelp(KDTreeNode curr){
+
+
+        if (curr == null){//null
+            return -1;
+        }
+        else if (curr.left != null && curr.right != null){//two children
+            return 1 + Math.max(heightHelp(curr.left), heightHelp(curr.right));
+        }
+
+        else if (curr.left != null && curr.right == null){//only left child
+            return 1 + heightHelp(curr.left);
+
+        }
+
+        else if (curr.left == null && curr.right != null){//only right child
+            return 1 + heightHelp(curr.right);
+        }
+        else if (curr != null && curr.left == null && curr.right == null){//no children
+            return 0;
+        }
+        else {
+            return 0;
+        }
+
+
+
     }
 
     /**
@@ -198,14 +430,15 @@ public class KDTreeNode {
      * @return The {@link KDPoint} held inside this.
      */
     public KDPoint getPoint(){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+
+        return this.p;
     }
 
     public KDTreeNode getLeft(){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        return this.left;
     }
 
     public KDTreeNode getRight(){
-        throw new UnimplementedMethodException(); // ERASE THIS LINE AFTER YOU IMPLEMENT THIS METHOD!
+        return this.right;
     }
 }

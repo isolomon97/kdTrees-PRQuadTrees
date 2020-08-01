@@ -173,9 +173,13 @@ public class PRQuadTree implements SpatialDictionary,SpatialQuerySolver {
         return pts;
     }
 
+
+
+
+
     @Override
     public KDPoint nearestNeighbor(KDPoint p) {
-        NNData<KDPoint> n = new NNData<>(null, INFTY);
+        NNData<KDPoint> n = new NNData<>(null, 10000);
         if(root != null)
             n = root.nearestNeighbor(p, n);
         return n.getBestGuess();

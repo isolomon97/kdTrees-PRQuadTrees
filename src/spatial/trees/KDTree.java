@@ -138,7 +138,7 @@ public class KDTree implements SpatialDictionary, SpatialQuerySolver {
 
 	@Override
 	public KDPoint nearestNeighbor(KDPoint p){
-		NNData<KDPoint> n = new NNData<>(null, INFTY);
+		NNData<KDPoint> n = new NNData<>(null, 10000);
 		if(root != null)
 			n = root.nearestNeighbor(p, 0, n, dims);
 		return n.getBestGuess();

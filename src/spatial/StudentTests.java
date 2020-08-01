@@ -255,7 +255,6 @@ public class StudentTests {
         expectedKnnPoints.enqueue(new KDPoint(-1, 2),2);
         expectedKnnPoints.enqueue(new KDPoint(-2, 2), 2.236068);
         expectedKnnPoints.enqueue(new KDPoint(-2, 6),2.236068 );
-//        expectedKnnPoints.enqueue(new KDPoint(-2.0, 7.0),2.236068);
 
 
 
@@ -368,6 +367,66 @@ public class StudentTests {
 //        VizTree visualizer = new VizTree();
         CompactVizTree visualizer = new CompactVizTree(120,120,10);
         visualizer.drawBTreeToFile(kdDescription,4,"compact_quadtree");
+
+    }
+
+    @Test
+    public void myPR(){
+
+       PRQuadTree tree = new PRQuadTree(7, 2);
+
+       tree.insert(new KDPoint(-33, 40));
+
+       tree.insert(new KDPoint(5,20));
+
+        tree.insert(new KDPoint(-40, 16));
+
+        tree.insert(new KDPoint(-38, -10));
+
+        tree.insert(new KDPoint(8, -8));
+
+        tree.insert(new KDPoint(-38, -28));
+
+        tree.insert(new KDPoint(48, -48));
+
+        tree.insert(new KDPoint(10, 28));
+
+        tree.insert(new KDPoint(8, -2));
+
+        tree.insert(new KDPoint(26, -2));
+
+        tree.insert(new KDPoint(8, -12));
+
+        tree.insert(new KDPoint(-16, -48));
+
+        tree.insert(new KDPoint(10, -20));
+
+        tree.insert(new KDPoint(11, -20));
+
+        tree.insert(new KDPoint(11, 30));
+
+        System.out.println(tree.treeDescription(false));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     }
 }
